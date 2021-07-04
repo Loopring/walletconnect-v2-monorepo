@@ -55,7 +55,7 @@ in {
       inherit nodeEnv;
     }).nodeDependencies;
   relayApp = relayApp;
-  relay = pkgs.dockerTools.buildLayeredImage {
+  relay = pkgs.dockerTools.buildImage {
     name = "relay";
     created = "now";
     config = {
