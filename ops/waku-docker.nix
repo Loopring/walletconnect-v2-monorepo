@@ -1,7 +1,9 @@
 {
   pkgs ? import (import ./nix/sources.nix).nixpkgs {},
-  wakunode ? import (import ./nix/sources.nix)."nix-nim-waku" {},
-  #wakunode ? import ../../nix-nim-waku/default.nix {}, # this is for local dev imports
+  wakunode ? (import (builtins.fetchTarball {
+    url = "https://github.com/sbc64/nix-nim-waku/archive/master.tar.gz";
+    sha256 = "13c7fn2ylzqnha9zb9rpjgs1dblpcsq1f1v0xmrvwzn3y1ypb91y";
+  })) {},
 }:
 let
   entry-script = with pkgs; writeScript "entry-script.sh" ''
