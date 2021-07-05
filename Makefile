@@ -41,7 +41,9 @@ dirs:
 
 pull: ## pulls docker images
 	docker pull $(redisImage)
+ifeq (, $(shell which nix))
 	docker pull nixos/nix
+endif
 	touch $(flags)/$@
 	$(log_end)
 
@@ -83,7 +85,9 @@ build-relay: ## builds the relay using system npm
 	$(log_end)
 
 nix-volume:
+ifneq (, $(shell which nix))
 	docker volume create nix-store
+endif
 	$(log_end)
 
 build-relay-deps:
