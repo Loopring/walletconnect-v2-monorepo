@@ -160,6 +160,9 @@ predeploy: dirs pull build-images
 	touch $(flags)/$@
 
 dev: predeploy ## runs relay on watch mode and shows logs
+	nix show-derviation /nix/store/*-relay-conf.json.drv
+	nix show-derviation /nix/store/*-stream-relay.drv
+	nix show-derviation /nix/store/*-relay.tar.gz.drv
 	REPLICAS=1 MONITORING=false NODE_ENV=development $(MAKE) deploy
 	@echo  "MAKE: Done with $@"
 	@echo
