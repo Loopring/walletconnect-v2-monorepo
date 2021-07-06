@@ -1,9 +1,6 @@
 {
   pkgs ? import (import ./nix/sources.nix).nixpkgs {},
-  wakunode ? (import (builtins.fetchTarball {
-    url = "https://github.com/sbc64/nix-nim-waku/archive/master.tar.gz";
-    sha256 = "13c7fn2ylzqnha9zb9rpjgs1dblpcsq1f1v0xmrvwzn3y1ypb91y";
-  })) {},
+  wakunode ? import (import ./nix/sources.nix)."nix-nim-waku" {},
 }:
 let
   entry-script = with pkgs; writeScript "entry-script.sh" ''
@@ -16,15 +13,30 @@ let
       od -vN "32" -An -tx1 /dev/urandom | tr -d " \n" > /mnt/nodekey
     fi
 
-    ${wakunode}/bin/wakunode --nodekey=$(cat /mnt/nodekey) --rpc=true --rpc-address=0.0.0.0 > /dev/null 2>&1 &
+    mkdir -v /tmp
+    ${wakunode}/bin/wakunode \
+      --nat=none \
+      --nodekey=$(cat /mnt/nodekey) \
+      --rpc=true \
+      --rpc-address=0.0.0.0 \
+      --relay=false \
+      --rln-relay=false \
+      --store=false \
+      --filter=false \
+      --swap=false > /tmp/logs 2>&1 &
     PID=$!
+    echo "Sleeping...."
     sleep 10 # wait for rpc server to start
+    echo "Logs..."
+    cat /tmp/logs
+    echo "A"
+    echo "B"
 
     while ! ${dnsutils}/bin/dig +short $SWARM_PEERS; do
       sleep 1
     done
     peerIPs=$(${dnsutils}/bin/dig +short $SWARM_PEERS)
-    echo "SUP $peerIPs"
+    echo "Peer ip addresses: $peerIPs"
     peersArgs=""
     for ip in $peerIPs; do
       echo "IP $ip"
@@ -44,7 +56,7 @@ let
     done
 
 
-    echo "Stopping last waku with PID: $PID"
+    echo "Stopping background waku with PID: $PID"
     kill $PID
     peersArgs="$peersArgs --staticnode=$STORE"
 
@@ -69,7 +81,6 @@ let
     "
     printf "\n\nCommand: $run\n\n"
     exec $run
-
   '';
 in pkgs.dockerTools.buildLayeredImage {
   name =  "wakunode";
