@@ -23,14 +23,11 @@ let
       --rln-relay=false \
       --store=false \
       --filter=false \
-      --swap=false > /tmp/logs 2>&1 &
+      --swap=false &
     PID=$!
     echo "Sleeping...."
-    sleep 10 # wait for rpc server to start
-    echo "Logs..."
-    cat /tmp/logs
-    echo "A"
-    echo "B"
+    sleep 5 # wait for rpc server to start
+    echo "Done!"
 
     while ! ${dnsutils}/bin/dig +short $SWARM_PEERS; do
       sleep 1
@@ -60,9 +57,8 @@ let
     kill $PID
     peersArgs="$peersArgs --staticnode=$STORE"
 
-    echo "ALL $peersArgs"
-
     run="${wakunode}/bin/wakunode \
+      --nat=none \
       --nodekey=$(${coreutils}/bin/cat /mnt/nodekey) \
       --keep-alive=true \
       --swap=false \
